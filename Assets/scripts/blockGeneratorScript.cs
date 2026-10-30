@@ -98,10 +98,47 @@ public class blockGeneratorScript : MonoBehaviour
     {
         if (specialPrefabs != null && specialPrefabs.Length > 0 && Random.value < specialChance)
         {
-            GameObject special = specialPrefabs[Random.Range(0, specialPrefabs.Length)];
+            GameObject special = NextSpecial();
             if (special != null) return special;
         }
         return Random.value < chanceA ? blockPrefabA : blockPrefabB;
+    }
+
+    // ---- Bossa de cubs especials (com el Tetris) ----
+    // Es barregen tots els especials, es treuen en aquest ordre i, quan s'acaben,
+    // es torna a omplir la bossa amb un ordre nou. Així surten tots abans de repetir-ne cap.
+    private readonly System.Collections.Generic.List<GameObject> specialBag = new System.Collections.Generic.List<GameObject>();
+    private GameObject lastSpecial;
+
+    private GameObject NextSpecial()
+    {
+        if (specialBag.Count == 0) RefillSpecialBag();
+        if (specialBag.Count == 0) return null;
+
+        GameObject next = specialBag[0];
+        specialBag.RemoveAt(0);
+        lastSpecial = next;
+        return next;
+    }
+
+    private void RefillSpecialBag()
+    {
+        foreach (GameObject s in specialPrefabs)
+            if (s != null) specialBag.Add(s);
+
+        // Barreja Fisher-Yates
+        for (int i = specialBag.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (specialBag[i], specialBag[j]) = (specialBag[j], specialBag[i]);
+        }
+
+        // Evita que el primer de la bossa nova sigui igual que l'últim de l'anterior
+        if (specialBag.Count > 1 && specialBag[0] == lastSpecial)
+        {
+            int k = Random.Range(1, specialBag.Count);
+            (specialBag[0], specialBag[k]) = (specialBag[k], specialBag[0]);
+        }
     }
 
     private void SpawnAt(int cell)

@@ -12891,6 +12891,10 @@ MonoBehaviour:
   pistol: {fileID: 0}
   sword: {fileID: 0}
   pistolInRightHand: 0
+  swappedPistolRotation: {x: 0, y: 0, z: 180}
+  swappedPistolOffset: {x: 0, y: 0, z: 0}
+  swappedSwordRotation: {x: 0, y: 0, z: 0}
+  swappedSwordOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &1985224029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12907,28 +12911,28 @@ MonoBehaviour:
   waves:
   - name: "Wave 1 - Introducci\xF3"
     duration: 30
-    spawnsPerSecond: 0.3
-    gunCubes: 1
-    swordCubes: 0
-    doubleSpawnChance: 0
-    cubeSpeed: 0.8
-    specialChance: 0
-  - name: "Wave 2 - Combinaci\xF3"
-    duration: 40
     spawnsPerSecond: 0.6
     gunCubes: 1
     swordCubes: 1
-    doubleSpawnChance: 0.25
+    doubleSpawnChance: 0
     cubeSpeed: 1
     specialChance: 0
-  - name: Wave 3 - Caos
-    duration: 45
+  - name: "Wave 2 - Combinaci\xF3"
+    duration: 40
     spawnsPerSecond: 0.9
     gunCubes: 1
     swordCubes: 1
-    doubleSpawnChance: 0.35
+    doubleSpawnChance: 0.25
     cubeSpeed: 1.3
-    specialChance: 0.15
+    specialChance: 0
+  - name: Wave 3 - Caos
+    duration: 45
+    spawnsPerSecond: 1.1
+    gunCubes: 1
+    swordCubes: 1
+    doubleSpawnChance: 0.35
+    cubeSpeed: 1.5
+    specialChance: 0.05
 --- !u!4 &2020669092 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6269505014213372115, guid: a5226a72c9553294abfe172a458b5805, type: 3}
