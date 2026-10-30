@@ -41,7 +41,7 @@ public class blockGeneratorScript : MonoBehaviour
     {
         if (!spawning || spawnsPerSecond <= 0f) return;
 
-        timer += Time.deltaTime;
+        timer += Time.deltaTime * GameSpeed.Multiplier;
         float interval = 1f / spawnsPerSecond;
 
         while (timer >= interval)
@@ -63,17 +63,58 @@ public class blockGeneratorScript : MonoBehaviour
     public void StartSpawning() { timer = 0f; spawning = true; }
     public void StopSpawning() => spawning = false;
 
+    [Header("Waves (els controla el WaveManager)")]
+    [Tooltip("Probabilitat (0-1) que surtin dos cubs alhora")]
+    [Range(0f, 1f)] public float doubleSpawnChance = 0f;
+    [Tooltip("Cubs especials: CubLent, CubRapid, CubCanvi")]
+    public GameObject[] specialPrefabs;
+    [Tooltip("Probabilitat (0-1) que un cub sigui especial")]
+    [Range(0f, 1f)] public float specialChance = 0f;
+
+    // Tria quins tipus de cub poden sortir (pistola, espasa o tots dos)
+    public void SetCubeMix(bool gun, bool sword)
+    {
+        bool aIsGun = blockPrefabA != null && blockPrefabA.GetComponentInChildren<blockPistolaScript>() != null;
+        if (gun && sword) chanceA = 0.5f;
+        else if (gun) chanceA = aIsGun ? 1f : 0f;
+        else if (sword) chanceA = aIsGun ? 0f : 1f;
+    }
+
     private void SpawnBlock()
     {
-        GameObject prefab = Random.value <= chanceA ? blockPrefabA : blockPrefabB;
+        int cells = Mathf.Max(1, columns) * Mathf.Max(1, rows);
+        int first = Random.Range(0, cells);
+        SpawnAt(first);
+
+        // De vegades, un segon cub en una altra casella
+        if (cells > 1 && Random.value < doubleSpawnChance)
+        {
+            int second = (first + Random.Range(1, cells)) % cells;
+            SpawnAt(second);
+        }
+    }
+
+    private GameObject PickPrefab()
+    {
+        if (specialPrefabs != null && specialPrefabs.Length > 0 && Random.value < specialChance)
+        {
+            GameObject special = specialPrefabs[Random.Range(0, specialPrefabs.Length)];
+            if (special != null) return special;
+        }
+        return Random.value < chanceA ? blockPrefabA : blockPrefabB;
+    }
+
+    private void SpawnAt(int cell)
+    {
+        GameObject prefab = PickPrefab();
         if (prefab == null)
         {
             Debug.LogWarning("BlockGenerator: falta asignar un prefab en el Inspector.", this);
             return;
         }
 
-        int col = Random.Range(0, Mathf.Max(1, columns));
-        int row = Random.Range(0, Mathf.Max(1, rows));
+        int col = cell % Mathf.Max(1, columns);
+        int row = cell / Mathf.Max(1, columns);
 
         // Centrar el grid horizontalmente respecto al generador
         float x = (col - (columns - 1) * 0.5f) * columnSpacing;

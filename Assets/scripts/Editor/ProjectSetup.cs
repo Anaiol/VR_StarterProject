@@ -165,6 +165,164 @@ public static class ProjectSetup
         return result;
     }
 
+    // =====================================================================
+    // WAVES: cubs especials, WaveManager, WeaponSwapper i gallet dret de la pistola
+    // =====================================================================
+    const string PistolaPath = "Assets/Prefabs/Pistola.prefab";
+    const string InputActionsPath = "Assets/AutoHand/Examples/Scenes/MetaXR/Auto Hand.inputactions";
+
+    [MenuItem("Tools/VR Project/Configurar Waves")]
+    public static void RunWaves()
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        string previousScene = SceneManager.GetActiveScene().path;
+
+        string log = "";
+        GameObject[] specials =
+        {
+            CreateSpecialCube("CubLent",  SpecialCube.Effect.SlowMotion,  0.5f, new Color(0.2f, 0.6f, 1f), ref log),
+            CreateSpecialCube("CubRapid", SpecialCube.Effect.FastForward, 1.6f, new Color(1f, 0.5f, 0f), ref log),
+            CreateSpecialCube("CubCanvi", SpecialCube.Effect.SwapWeapons, 1f,   new Color(0.8f, 0.2f, 1f), ref log),
+        };
+        log += SetupPistolRightTrigger() + "\n";
+        log += SetupGameSceneWaves(specials) + "\n";
+
+        if (!string.IsNullOrEmpty(previousScene))
+            EditorSceneManager.OpenScene(previousScene);
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("[ProjectSetup Waves]\n" + log);
+        EditorUtility.DisplayDialog("Waves configurades", log, "D'acord");
+    }
+
+    static GameObject CreateSpecialCube(string name, SpecialCube.Effect effect, float mult, Color color, ref string log)
+    {
+        string path = "Assets/Prefabs/" + name + ".prefab";
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null)
+        {
+            if (!AssetDatabase.CopyAsset(CubPistolaPath, path))
+            {
+                log += "✗ No he pogut crear " + name + "\n";
+                return null;
+            }
+        }
+
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            root.name = name;
+            SpecialCube sc = root.GetComponent<SpecialCube>();
+            if (sc == null) sc = root.AddComponent<SpecialCube>();
+            sc.effect = effect;
+            sc.speedMultiplier = mult;
+            sc.tint = color;
+            sc.duration = 5f;
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+        log += "✓ Prefab " + name + " (" + effect + ")\n";
+        return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+    }
+
+    static string SetupPistolRightTrigger()
+    {
+        UnityEngine.InputSystem.InputActionReference right = AssetDatabase.LoadAllAssetsAtPath(InputActionsPath)
+            .OfType<UnityEngine.InputSystem.InputActionReference>()
+            .FirstOrDefault(r => r.name.EndsWith("Trigger Pressed (R)"));
+        if (right == null) return "✗ No trobo l'acció 'Trigger Pressed (R)' a " + InputActionsPath;
+
+        GameObject root = PrefabUtility.LoadPrefabContents(PistolaPath);
+        try
+        {
+            pistolaScript p = root.GetComponentInChildren<pistolaScript>(true);
+            if (p == null) return "✗ El prefab Pistola no té pistolaScript";
+            p.rightTriggerAction = right;
+            PrefabUtility.SaveAsPrefabAsset(root, PistolaPath);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+        return "✓ Pistola: gallet dret assignat";
+    }
+
+    static string SetupGameSceneWaves(GameObject[] specials)
+    {
+        Scene scene;
+        if (!OpenSceneByName("GameScene", out scene)) return "✗ No trobo la GameScene";
+        string result = "✓ GameScene:";
+
+        GameObject managers = FindInScene(scene, "[MANAGERS]");
+        if (managers == null)
+        {
+            managers = new GameObject("[MANAGERS]");
+            SceneManager.MoveGameObjectToScene(managers, scene);
+        }
+
+        blockGeneratorScript gen = FindComponent<blockGeneratorScript>(scene);
+        if (gen != null)
+        {
+            gen.specialPrefabs = specials.Where(s => s != null).ToArray();
+            EditorUtility.SetDirty(gen);
+            result += " cubs especials al generador,";
+        }
+        else result += " (no trobo el generador),";
+
+        WaveManager wm = managers.GetComponent<WaveManager>();
+        if (wm == null) wm = managers.AddComponent<WaveManager>();
+        wm.generator = gen;
+        EditorUtility.SetDirty(wm);
+        result += " WaveManager,";
+
+        if (managers.GetComponent<WeaponSwapper>() == null) managers.AddComponent<WeaponSwapper>();
+        result += " WeaponSwapper,";
+
+        ScoreManager sm = FindComponent<ScoreManager>(scene);
+        if (sm != null)
+        {
+            sm.waveManager = wm;
+            if (sm.cubeGenerator == null) sm.cubeGenerator = gen;
+
+            // Text per al nom de la wave i el compte enrere entre waves (còpia de Text_Time)
+            if (sm.textNextRound == null)
+            {
+                GameObject template = FindInScene(scene, "Text_Time");
+                if (template != null)
+                {
+                    GameObject waveText = Object.Instantiate(template, template.transform.parent);
+                    waveText.name = "Text_Wave";
+                    RectTransform rt = waveText.GetComponent<RectTransform>();
+                    RectTransform trt = template.GetComponent<RectTransform>();
+                    if (rt != null && trt != null)
+                    {
+                        rt.sizeDelta = new Vector2(trt.sizeDelta.x * 3f, trt.sizeDelta.y);
+                        rt.anchoredPosition = trt.anchoredPosition + Vector2.up * (trt.rect.height * 1.3f);
+                    }
+                    TMP_Text t = waveText.GetComponent<TMP_Text>();
+                    if (t != null)
+                    {
+                        t.enableAutoSizing = true;
+                        t.fontSizeMax = t.fontSize * 0.6f;
+                        t.fontSizeMin = 1f;
+                        t.text = "Wave 1";
+                        sm.textNextRound = t;
+                    }
+                    result += " Text_Wave creat,";
+                }
+            }
+            EditorUtility.SetDirty(sm);
+            result += " ScoreManager connectat";
+        }
+        else result += " (no trobo el ScoreManager)";
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        return result;
+    }
+
     // ---------- Utilitats ----------
     static bool OpenSceneByName(string name, out Scene scene)
     {

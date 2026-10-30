@@ -272,6 +272,8 @@ MonoBehaviour:
   fireRate: 0.2
   automatic: 0
   leftTriggerAction: {fileID: 1890700126832101716, guid: ab2a16db2680df74fb9cbbb3214a4fb7, type: 3}
+  rightTriggerAction: {fileID: 8650556816782149517, guid: ab2a16db2680df74fb9cbbb3214a4fb7, type: 3}
+  useRightHand: 0
   showLine: 1
   lineWidth: 0.01
   lineColor: {r: 1, g: 0, b: 0, a: 1}

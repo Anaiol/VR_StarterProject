@@ -39,7 +39,13 @@ public class ScoreManager : MonoBehaviour
     [Tooltip("Nombre de la escena del lobby (para el botón Back to Lobby)")]
     public string lobbySceneName = "LobbyScene";
 
-    [Header("Rondas")]
+    [Header("Waves")]
+    [Tooltip("Si està assignat, la partida es divideix en waves i s'acaba després de l'última")]
+    public WaveManager waveManager;
+    [Tooltip("Segons de pausa entre waves")]
+    public float waveBreakDuration = 5f;
+
+    [Header("Rondas (només si no hi ha WaveManager)")]
     [Tooltip("Segundos de pausa (sin cubos) entre rondas")]
     public float breakDuration = 10f;
     [Tooltip("Cuánto aumenta la velocidad de los cubos en cada ronda (0.2 = +20%)")]
@@ -66,6 +72,9 @@ public class ScoreManager : MonoBehaviour
 
     private float breakTimeLeft;
     private float baseSpawnsPerSecond;
+    private bool UseWaves => waveManager != null && waveManager.Count > 0;
+    private bool inWaveBreak;
+    private float roundDuration;   // durada de la ronda/wave actual (per a la barra del temps)
 
     private void Awake()
     {
@@ -89,12 +98,67 @@ public class ScoreManager : MonoBehaviour
         if (cubeGenerator != null) baseSpawnsPerSecond = cubeGenerator.SpawnsPerSecond;
 
         TotalScore = 0;
-        StartRound(1);
+        GameSpeed.Reset();
+        if (UseWaves) StartWave(0);
+        else StartRound(1);
+    }
+
+    // ---- Mode waves ----
+    // El score és acumulat; entre waves hi ha una pausa curta sense panell final
+    private void StartWave(int index)
+    {
+        Round = index + 1;
+        inWaveBreak = false;
+        IsGameOver = false;
+        roundDuration = waveManager.Get(index).duration;
+        TimeLeft = roundDuration;
+
+        waveManager.ApplyWave(index);
+        if (cubeGenerator != null) cubeGenerator.StartSpawning();
+
+        if (uiScoreCurrent != null) uiScoreCurrent.SetActive(true);
+        if (uiTimer != null) uiTimer.SetActive(true);
+        if (uiScoreFinal != null) uiScoreFinal.SetActive(false);
+        if (textNextRound != null) textNextRound.text = waveManager.Get(index).name;
+
+        UpdateScoreUI();
+        UpdateTimerUI();
+    }
+
+    private void UpdateWaves()
+    {
+        if (IsGameOver) return;
+
+        if (inWaveBreak)
+        {
+            breakTimeLeft -= Time.deltaTime;
+            if (textNextRound != null)
+                textNextRound.text = $"{waveManager.Get(Round).name} en {Mathf.CeilToInt(Mathf.Max(0f, breakTimeLeft))}";
+            if (breakTimeLeft <= 0f) StartWave(Round); // Round és 1-based: la següent és l'índex Round
+            return;
+        }
+
+        TimeLeft -= Time.deltaTime;
+        UpdateTimerUI();
+        if (TimeLeft > 0f) return;
+
+        TimeLeft = 0f;
+        UpdateTimerUI();
+        if (cubeGenerator != null) cubeGenerator.StopSpawning();
+
+        if (Round >= waveManager.Count)
+            EndGame(); // EndGame suma Score a TotalScore (que en mode waves és 0)
+        else
+        {
+            inWaveBreak = true;
+            breakTimeLeft = waveBreakDuration;
+        }
     }
 
     // Empieza una ronda: reinicia el tiempo, aplica la dificultad y vuelve a lanzar cubos
     private void StartRound(int round)
     {
+        roundDuration = gameDuration;
         Round = round;
         TimeLeft = gameDuration;
         IsGameOver = false;
@@ -119,6 +183,8 @@ public class ScoreManager : MonoBehaviour
 
     private void Update()
     {
+        if (UseWaves) { UpdateWaves(); return; }
+
         if (IsGameOver)
         {
             // Pausa entre rondas: no salen cubos durante breakDuration segundos
@@ -189,7 +255,7 @@ public class ScoreManager : MonoBehaviour
 
         if (textTime != null) textTime.text = $"{minutes:00}:{seconds:00}";
 
-        float progress = gameDuration > 0f ? t / gameDuration : 0f;
+        float progress = roundDuration > 0f ? t / roundDuration : 0f;
         if (timerFillImage != null) timerFillImage.fillAmount = progress;
         if (timerSlider != null) timerSlider.value = progress;
     }

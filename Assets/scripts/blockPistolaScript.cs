@@ -20,13 +20,14 @@ public class blockPistolaScript : MonoBehaviour
         if (done) return;
         done = true;
         CancelInvoke(nameof(Missed));
-        if (ScoreManager.Instance != null) ScoreManager.Instance.AddMiss();
+        // Deixar passar un cub especial no resta punts
+        if (ScoreManager.Instance != null && GetComponent<SpecialCube>() == null) ScoreManager.Instance.AddMiss();
         Destroy(gameObject);
     }
 
     private void Update()
     {
-        transform.position += direction * speed * Time.deltaTime;
+        transform.position += direction * speed * GameSpeed.Multiplier * Time.deltaTime;
     }
 
     public void hitted()
@@ -36,6 +37,10 @@ public class blockPistolaScript : MonoBehaviour
         CancelInvoke(nameof(Missed));
         // El ScoreManager suma els punts i fa sonar el clip
         if (ScoreManager.Instance != null) ScoreManager.Instance.CubeDestroyed(ScoreManager.CubeType.Gun);
+
+        // Si és un cub especial, activa el seu efecte
+        SpecialCube special = GetComponent<SpecialCube>();
+        if (special != null) special.Activate();
 
         // Animació de trencar-se (si el prefab té CubeExplode); si no, desapareix directament
         CubeExplode explode = GetComponent<CubeExplode>();

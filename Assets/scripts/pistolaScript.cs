@@ -31,6 +31,14 @@ public class pistolaScript : MonoBehaviour
 
     [Header("Input")]
     public InputActionReference leftTriggerAction;
+    [Tooltip("Gallet de la mà dreta (Auto Hand/Trigger Pressed (R)), per quan la pistola canvia de mà")]
+    public InputActionReference rightTriggerAction;
+    [Tooltip("Quin gallet dispara. El WeaponSwapper el canvia quan intercanvia les armes")]
+    public bool useRightHand = false;
+
+    InputActionReference ActiveTrigger => useRightHand && rightTriggerAction != null ? rightTriggerAction : leftTriggerAction;
+
+    public void SetRightHand(bool right) => useRightHand = right;
 
     [Header("Línea de puntería")]
     public bool showLine = true;
@@ -95,21 +103,27 @@ public class pistolaScript : MonoBehaviour
 
     void OnEnable()
     {
-        if (leftTriggerAction == null) return;
-        leftTriggerAction.action.Enable();
-        leftTriggerAction.action.performed += OnTrigger;
+        foreach (InputActionReference r in new[] { leftTriggerAction, rightTriggerAction })
+        {
+            if (r == null) continue;
+            r.action.Enable();
+            r.action.performed += OnTrigger;
+        }
     }
 
     void OnDisable()
     {
-        if (leftTriggerAction == null) return;
-        leftTriggerAction.action.performed -= OnTrigger;
+        foreach (InputActionReference r in new[] { leftTriggerAction, rightTriggerAction })
+        {
+            if (r == null) continue;
+            r.action.performed -= OnTrigger;
+        }
     }
 
     void Update()
     {
-        if (automatic && leftTriggerAction != null
-            && leftTriggerAction.action.IsPressed())
+        InputActionReference trigger = ActiveTrigger;
+        if (automatic && trigger != null && trigger.action.IsPressed())
             Fire();
 
         UpdateLine();
@@ -117,6 +131,9 @@ public class pistolaScript : MonoBehaviour
 
     void OnTrigger(InputAction.CallbackContext ctx)
     {
+        // Només dispara el gallet de la mà on hi ha la pistola
+        InputActionReference trigger = ActiveTrigger;
+        if (trigger == null || ctx.action != trigger.action) return;
         if (!automatic) Fire();
     }
 

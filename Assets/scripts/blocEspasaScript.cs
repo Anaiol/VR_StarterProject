@@ -26,7 +26,7 @@ public class blocEspasaScript : MonoBehaviour
 
     private void Update()
     {
-        transform.position += direction * speed * Time.deltaTime;
+        transform.position += direction * speed * GameSpeed.Multiplier * Time.deltaTime;
     }
 
     private void hitted()
