@@ -4,16 +4,22 @@ public class blockPistolaScript : MonoBehaviour
 {
     public Vector3 direction;
     public float speed;
+    [Tooltip("Seguretat: si el cub no toca la CubeMissZone, es destrueix igualment al cap d'aquests segons")]
     public float lifetime;
+
+    bool done; // evita comptar el mateix cub dues vegades (encert i fallada)
 
     void Start()
     {
         Invoke(nameof(Missed), lifetime);
     }
 
-    // El cubo ha pasado sin que le disparen
-    private void Missed()
+    // El cub ha passat sense que li disparin (el crida la CubeMissZone o el lifetime)
+    public void Missed()
     {
+        if (done) return;
+        done = true;
+        CancelInvoke(nameof(Missed));
         if (ScoreManager.Instance != null) ScoreManager.Instance.AddMiss();
         Destroy(gameObject);
     }
@@ -25,9 +31,15 @@ public class blockPistolaScript : MonoBehaviour
 
     public void hitted()
     {
+        if (done) return;
+        done = true;
         CancelInvoke(nameof(Missed));
         // El ScoreManager suma els punts i fa sonar el clip
         if (ScoreManager.Instance != null) ScoreManager.Instance.CubeDestroyed(ScoreManager.CubeType.Gun);
-        Destroy(gameObject);
+
+        // Animació de trencar-se (si el prefab té CubeExplode); si no, desapareix directament
+        CubeExplode explode = GetComponent<CubeExplode>();
+        if (explode != null) explode.Explode();
+        else Destroy(gameObject);
     }
 }

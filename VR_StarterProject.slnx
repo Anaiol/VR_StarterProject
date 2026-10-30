@@ -8,4 +8,5 @@
   <Project Path="Autohand.XR.csproj" />
   <Project Path="Autohand.MetaXR.Editor.csproj" />
   <Project Path="Autohand.XR.Editor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>

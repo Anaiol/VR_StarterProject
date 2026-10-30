@@ -84,7 +84,11 @@ namespace Autohand{
             if(countdownText != null)
                 countdownText.text = finalText;
 
-            SceneManager.LoadScene(1);
+            // Si hi ha nom d'escena a l'Inspector, es fa servir; si no, la 1 de Build Settings (GameScene)
+            if(!string.IsNullOrEmpty(sceneName))
+                SceneManager.LoadScene(sceneName);
+            else
+                SceneManager.LoadScene(1);
         }
         
     }

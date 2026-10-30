@@ -2,20 +2,24 @@ using UnityEngine;
 
 public class blocEspasaScript : MonoBehaviour
 {
-public Vector3 direction;
+    public Vector3 direction;
     public float speed;
+    [Tooltip("Seguretat: si el cub no toca la CubeMissZone, es destrueix igualment al cap d'aquests segons")]
     public float lifetime;
-    private bool isHit;
 
+    bool done; // evita comptar el mateix cub dues vegades (l'espasa té 2 colliders, i encert + fallada)
 
     public void Start()
     {
         Invoke(nameof(Missed), lifetime);
     }
 
-    // El cubo ha pasado sin que lo corten
-    private void Missed()
+    // El cub ha passat sense que el tallin (el crida la CubeMissZone o el lifetime)
+    public void Missed()
     {
+        if (done) return;
+        done = true;
+        CancelInvoke(nameof(Missed));
         if (ScoreManager.Instance != null) ScoreManager.Instance.AddMiss();
         Destroy(gameObject);
     }
@@ -24,20 +28,21 @@ public Vector3 direction;
     {
         transform.position += direction * speed * Time.deltaTime;
     }
+
     private void hitted()
     {
         CancelInvoke(nameof(Missed));
         // El ScoreManager suma els punts i fa sonar el clip
         if (ScoreManager.Instance != null) ScoreManager.Instance.CubeDestroyed(ScoreManager.CubeType.Sword);
         Destroy(gameObject);
-    
     }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Sword") && !isHit)
+        if (other.CompareTag("Sword") && !done)
         {
-            isHit = true; // la espada tiene 2 colliders: evita vibrar dos veces
-            hapticsScript.VibrateFor(other.transform); // vibra la mano de la espada
+            done = true;
+            hapticsScript.VibrateFor(other.transform); // vibra la mà de l'espasa
             hitted(); // avisa el ScoreManager (punts + so)
         }
     }

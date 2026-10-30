@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8107489915116076318}
   - component: {fileID: 6434579238448573033}
   - component: {fileID: 6234082787441137728}
+  - component: {fileID: 5843631993674911158}
   m_Layer: 0
   m_Name: CubPistola
   m_TagString: Untagged
@@ -128,3 +129,20 @@ MonoBehaviour:
   direction: {x: 0, y: 0, z: -1}
   speed: 2
   lifetime: 120
+--- !u!114 &5843631993674911158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1760147175948681021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45bbdd479c1b1154fbcd80625e61c8e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CubeExplode
+  shatterPrefab: {fileID: 100040, guid: 5ffa061762077c44d92ba72a9866833e, type: 3}
+  shatterMaterial: {fileID: 2100000, guid: 92ba2e9b907229b4da4f2d6fde23225c, type: 2}
+  scaleMultiplier: 1
+  destroyAfter: 1.5
+  explosionForce: 3
