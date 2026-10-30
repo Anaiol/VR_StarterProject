@@ -323,6 +323,54 @@ public static class ProjectSetup
         return result;
     }
 
+    // =====================================================================
+    // SLICE: SwordSlicer a l'espasa (Ezy-Slice)
+    // =====================================================================
+    const string SwordPath = "Assets/Prefabs/Sword.prefab";
+    const string SliceMatPath = "Assets/VR-Game-Assets/Materials/CyberpunkCube_SliceFX.mat";
+    const string CubeModelPath = "Assets/VR-Game-Assets/Models/CubeModels/CyberpunkCube_Whole.FBX";
+
+    [MenuItem("Tools/VR Project/Configurar Slice")]
+    public static void RunSlice()
+    {
+        string log = "";
+
+        // Ezy-Slice ha de poder llegir la malla del cub (també a les Quest)
+        ModelImporter importer = AssetImporter.GetAtPath(CubeModelPath) as ModelImporter;
+        if (importer != null && !importer.isReadable)
+        {
+            importer.isReadable = true;
+            importer.SaveAndReimport();
+            log += "✓ Model del cub marcat com a Read/Write\n";
+        }
+
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(SwordPath) == null)
+        {
+            EditorUtility.DisplayDialog("Slice", "✗ No trobo " + SwordPath, "D'acord");
+            return;
+        }
+
+        Material mat = AssetDatabase.LoadAssetAtPath<Material>(SliceMatPath);
+        GameObject root = PrefabUtility.LoadPrefabContents(SwordPath);
+        try
+        {
+            SwordSlicer slicer = root.GetComponent<SwordSlicer>();
+            if (slicer == null) slicer = root.AddComponent<SwordSlicer>();
+            if (slicer.blade == null) slicer.blade = root.transform.Find("Blade");
+            if (slicer.crossSectionMaterial == null) slicer.crossSectionMaterial = mat;
+            PrefabUtility.SaveAsPrefabAsset(root, SwordPath);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+        log += "✓ Sword: SwordSlicer afegit" + (mat == null ? " (sense material de tall, assigna'l a mà)" : "");
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("[ProjectSetup Slice]\n" + log);
+        EditorUtility.DisplayDialog("Slice configurat", log, "D'acord");
+    }
+
     // ---------- Utilitats ----------
     static bool OpenSceneByName(string name, out Scene scene)
     {

@@ -43,7 +43,12 @@ public class blocEspasaScript : MonoBehaviour
         {
             done = true;
             hapticsScript.VibrateFor(other.transform); // vibra la mà de l'espasa
-            hitted(); // avisa el ScoreManager (punts + so)
+
+            // Talla el cub en dos seguint el moviment de l'espasa (Ezy-Slice)
+            SwordSlicer slicer = other.GetComponentInParent<SwordSlicer>();
+            if (slicer != null) slicer.Slice(gameObject);
+
+            hitted(); // avisa el ScoreManager (punts + so) i destrueix el cub sencer
         }
     }
 }

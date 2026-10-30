@@ -4920,6 +4920,7 @@ GameObject:
   - component: {fileID: 7220967381762374366}
   - component: {fileID: 9122171104175160490}
   - component: {fileID: -7463828839706739143}
+  - component: {fileID: 7763388474441638051}
   m_Layer: 11
   m_Name: Sword
   m_TagString: Sword
@@ -5036,6 +5037,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::espasaScript
   sliceClip: {fileID: 8300000, guid: ab06b989577f4eb4a9dc9987190e3844, type: 3}
   sliceVolume: 1
+--- !u!114 &7763388474441638051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4324799096049809179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca3d90b043f7f7d44b5b495c7f355de1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SwordSlicer
+  blade: {fileID: 1604863613727597754}
+  crossSectionMaterial: {fileID: 2100000, guid: d63f9ee553af93244a8a3b708539d91a, type: 2}
+  separationSpeed: 1.5
+  pieceLifetime: 2
+  minSwingSpeed: 0.3
 --- !u!1 &6949053332406308841
 GameObject:
   m_ObjectHideFlags: 0
