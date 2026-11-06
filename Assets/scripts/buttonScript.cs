@@ -23,6 +23,12 @@ namespace Autohand{
         [Tooltip("Text que es mostra quan s'acaba el compte enrere (deixa-ho buit per no mostrar res)")]
         public string finalText = "";
 
+        [Header("So")]
+        [Tooltip("Àudio que sona en prémer el botó (ex. VR-Game-Assets/Audio/3DButtonClickSound.wav)")]
+        public AudioClip pressSound;
+        [Range(0f, 1f)] public float pressVolume = 1f;
+        AudioSource audioSource;
+
         [Space]
         public UnityEvent OnPressed;
         public UnityEvent OnUnpressed;
@@ -38,6 +44,10 @@ namespace Autohand{
             base.Start();
             startPos = transform.localPosition;
             body = joint.GetComponent<Rigidbody>();
+
+            audioSource = GetComponent<AudioSource>();
+            if(audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
         }
 
 
@@ -54,6 +64,7 @@ namespace Autohand{
             pressed = true;
             pressedValue = GetValue();
             pressedPos = transform.localPosition;
+            if(pressSound != null) audioSource.PlayOneShot(pressSound, pressVolume);
             OnPressed?.Invoke();
             if(lockOnPressed)
                 body.isKinematic = true;
@@ -84,7 +95,6 @@ namespace Autohand{
             if(countdownText != null)
                 countdownText.text = finalText;
 
-            // Si hi ha nom d'escena a l'Inspector, es fa servir; si no, la 1 de Build Settings (GameScene)
             if(!string.IsNullOrEmpty(sceneName))
                 SceneManager.LoadScene(sceneName);
             else

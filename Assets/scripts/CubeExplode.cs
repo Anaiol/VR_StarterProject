@@ -1,10 +1,5 @@
 using UnityEngine;
 
-// Animació de destrucció del GunCube quan li impacta una bala.
-// Posa aquest script a l'arrel del prefab CubPistola i arrossega a "Shatter Prefab"
-// el model VR-Game-Assets/Prefabs/Gun Cube/GunCubeShatterAnimation.FBX.
-// En explotar, el cub desapareix i al seu lloc es crea el model trencat, que reprodueix
-// l'animació "shatter". Si el model no té animació, els trossos surten disparats amb física.
 public class CubeExplode : MonoBehaviour
 {
     [Tooltip("Model del cub trencat (GunCubeShatterAnimation.FBX)")]
@@ -41,7 +36,6 @@ public class CubeExplode : MonoBehaviour
                 }
             }
 
-            // L'FBX s'importa com a animació Legacy, així que porta un component Animation
             Animation anim = shards.GetComponentInChildren<Animation>();
             if (anim != null && anim.clip != null)
             {
@@ -62,7 +56,6 @@ public class CubeExplode : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // Alternativa sense animació: cada tros rep un Rigidbody i una empenta cap enfora
     void PushPieces(Transform root)
     {
         foreach (MeshRenderer piece in root.GetComponentsInChildren<MeshRenderer>())

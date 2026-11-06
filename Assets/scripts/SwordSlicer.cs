@@ -1,9 +1,6 @@
 using UnityEngine;
 using EzySlice;
 
-// Talla els cubs d'espasa amb Ezy-Slice seguint el moviment de l'espasa.
-// Posa'l a l'arrel del prefab Sword. El pla de tall conté la fulla i la direcció
-// del moviment: si fas un tall horitzontal, el cub es parteix horitzontalment, etc.
 public class SwordSlicer : MonoBehaviour
 {
     [Tooltip("Fulla de l'espasa (si està buit, busca un fill anomenat 'Blade')")]
@@ -19,7 +16,6 @@ public class SwordSlicer : MonoBehaviour
     [Tooltip("Velocitat mínima de la fulla per fer servir la seva direcció; per sota es talla en vertical")]
     public float minSwingSpeed = 0.3f;
 
-    // Eix llarg de la fulla en coordenades locals de 'blade' (es calcula sol amb la malla)
     Vector3 bladeAxisLocal = Vector3.forward;
     float bladeHalfLength = 0.5f;
     Vector3 bladeCenterLocal;
@@ -35,7 +31,6 @@ public class SwordSlicer : MonoBehaviour
             blade = t != null ? t : transform;
         }
 
-        // La dimensió més llarga de la malla és la direcció de la fulla
         MeshFilter mf = blade.GetComponentInChildren<MeshFilter>();
         if (mf != null && mf.sharedMesh != null)
         {
@@ -55,41 +50,35 @@ public class SwordSlicer : MonoBehaviour
 
     void Update()
     {
-        // Velocitat de la fulla (suavitzada perquè el tracking del comandament fa petits salts)
         Vector3 c = BladeCenter;
         if (Time.deltaTime > 0f)
             velocity = Vector3.Lerp(velocity, (c - lastCenter) / Time.deltaTime, 0.5f);
         lastCenter = c;
     }
 
-    // Talla 'target' en dos trossos. Retorna false si no s'ha pogut tallar.
     public bool Slice(GameObject target)
     {
         Vector3 bladeDir = BladeDirection;
         Vector3 swing = velocity;
         Vector3 center = target.GetComponent<Renderer>() != null ? target.GetComponent<Renderer>().bounds.center : target.transform.position;
 
-        // Normal del pla = perpendicular a la fulla i al moviment
         Vector3 normal = Vector3.zero;
         if (swing.magnitude >= minSwingSpeed)
             normal = Vector3.Cross(bladeDir, swing);
         if (normal.sqrMagnitude < 0.0001f)
-            normal = Vector3.Cross(bladeDir, Vector3.up); // sense moviment: tall vertical seguint la fulla
+            normal = Vector3.Cross(bladeDir, Vector3.up);
         if (normal.sqrMagnitude < 0.0001f)
             normal = transform.right;
         normal.Normalize();
 
-        // Punt de la fulla més proper al centre del cub
         Vector3 bc = BladeCenter;
         float along = Mathf.Clamp(Vector3.Dot(center - bc, bladeDir), -bladeHalfLength, bladeHalfLength);
         Vector3 point = bc + bladeDir * along;
 
         GameObject[] pieces = target.SliceInstantiate(point, normal, crossSectionMaterial);
-        // Si el pla no toca la malla (la fulla ha entrat de costat), tallem pel centre del cub
         if (pieces == null) pieces = target.SliceInstantiate(center, normal, crossSectionMaterial);
         if (pieces == null) return false;
 
-        // Velocitat que portava el cub, perquè els trossos continuïn endavant
         Vector3 cubeVelocity = Vector3.zero;
         blocEspasaScript cube = target.GetComponent<blocEspasaScript>();
         if (cube != null) cubeVelocity = cube.direction.normalized * cube.speed * GameSpeed.Multiplier;
@@ -104,7 +93,7 @@ public class SwordSlicer : MonoBehaviour
             col.convex = true;
 
             Rigidbody rb = p.AddComponent<Rigidbody>();
-            float side = i == 0 ? 1f : -1f; // upper hull cap a la normal, lower hull al revés
+            float side = i == 0 ? 1f : -1f;
             rb.linearVelocity = cubeVelocity * 0.5f + normal * side * separationSpeed + swing * 0.2f;
             rb.angularVelocity = Random.insideUnitSphere * 4f;
 

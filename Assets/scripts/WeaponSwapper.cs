@@ -1,9 +1,5 @@
 using UnityEngine;
 
-// Intercanvia la pistola i l'espasa de mà.
-//  - "Pistol In Right Hand": tria a quina mà va la pistola (es pot canviar en temps d'execució)
-//  - SwapFor(segons): l'efecte del cub especial, intercanvia durant uns segons i després torna
-// Posa'l a [MANAGERS] de la GameScene. Troba sol la pistola i l'espasa.
 public class WeaponSwapper : MonoBehaviour
 {
     public static WeaponSwapper Instance { get; private set; }
@@ -22,7 +18,6 @@ public class WeaponSwapper : MonoBehaviour
     public Vector3 swappedSwordRotation = Vector3.zero;
     public Vector3 swappedSwordOffset = Vector3.zero;
 
-    // Posició original de cada arma (tal com està a l'escena)
     Transform pistolParent, swordParent;
     Vector3 pistolPos, swordPos;
     Quaternion pistolRot, swordRot;
@@ -51,14 +46,12 @@ public class WeaponSwapper : MonoBehaviour
         swordPos = sword.transform.localPosition;
         swordRot = sword.transform.localRotation;
 
-        // A l'escena la pistola està a la mà que fa servir el gallet esquerre
         pistolStartsRight = pistol.useRightHand;
         Apply(pistolInRightHand != pistolStartsRight);
     }
 
     void Update()
     {
-        // Final de l'efecte temporal del cub especial
         if (temporaryUntil > 0f && Time.time >= temporaryUntil)
         {
             temporaryUntil = -1f;
@@ -66,18 +59,15 @@ public class WeaponSwapper : MonoBehaviour
         }
 
         bool wanted = pistolInRightHand != pistolStartsRight;
-        // Mentre està intercanviat es torna a col·locar cada frame, així els ajustos de l'Inspector es veuen en directe
         if (wanted != currentlySwapped || wanted) Apply(wanted);
     }
 
-    // Per a un botó de la UI, per exemple
     public void Swap() => pistolInRightHand = !pistolInRightHand;
 
     public void SwapFor(float seconds)
     {
         if (temporaryUntil > 0f)
         {
-            // Ja està intercanviat per un altre cub: només allarga el temps
             temporaryUntil = Time.time + seconds;
             return;
         }
@@ -110,7 +100,6 @@ public class WeaponSwapper : MonoBehaviour
         t.localRotation = rot;
     }
 
-    // Les dues mans són simètriques respecte l'eix X local
     static Vector3 Mirror(Vector3 p) => new Vector3(-p.x, p.y, p.z);
     static Quaternion Mirror(Quaternion q) => new Quaternion(q.x, -q.y, -q.z, q.w);
 }

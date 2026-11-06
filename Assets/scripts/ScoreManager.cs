@@ -45,6 +45,12 @@ public class ScoreManager : MonoBehaviour
     [Tooltip("Segons de pausa entre waves")]
     public float waveBreakDuration = 5f;
 
+    [Header("Ronda superada")]
+    [Tooltip("Missatge que surt en acabar cada ronda/wave")]
+    public string roundClearedMessage = "RONDA SUPERADA!";
+    [Tooltip("Opcional: text gran només per al missatge. Si està buit, el missatge surt al text de la wave (Text_Wave)")]
+    public TMP_Text textRoundCleared;
+
     [Header("Rondas (només si no hi ha WaveManager)")]
     [Tooltip("Segundos de pausa (sin cubos) entre rondas")]
     public float breakDuration = 10f;
@@ -74,7 +80,7 @@ public class ScoreManager : MonoBehaviour
     private float baseSpawnsPerSecond;
     private bool UseWaves => waveManager != null && waveManager.Count > 0;
     private bool inWaveBreak;
-    private float roundDuration;   // durada de la ronda/wave actual (per a la barra del temps)
+    private float roundDuration;
 
     private void Awake()
     {
@@ -103,8 +109,6 @@ public class ScoreManager : MonoBehaviour
         else StartRound(1);
     }
 
-    // ---- Mode waves ----
-    // El score és acumulat; entre waves hi ha una pausa curta sense panell final
     private void StartWave(int index)
     {
         Round = index + 1;
@@ -120,6 +124,7 @@ public class ScoreManager : MonoBehaviour
         if (uiTimer != null) uiTimer.SetActive(true);
         if (uiScoreFinal != null) uiScoreFinal.SetActive(false);
         if (textNextRound != null) textNextRound.text = waveManager.Get(index).name;
+        ShowRoundCleared(false);
 
         UpdateScoreUI();
         UpdateTimerUI();
@@ -132,9 +137,8 @@ public class ScoreManager : MonoBehaviour
         if (inWaveBreak)
         {
             breakTimeLeft -= Time.deltaTime;
-            if (textNextRound != null)
-                textNextRound.text = $"{waveManager.Get(Round).name} en {Mathf.CeilToInt(Mathf.Max(0f, breakTimeLeft))}";
-            if (breakTimeLeft <= 0f) StartWave(Round); // Round és 1-based: la següent és l'índex Round
+            SetBreakText($"{waveManager.Get(Round).name} en {Mathf.CeilToInt(Mathf.Max(0f, breakTimeLeft))}");
+            if (breakTimeLeft <= 0f) StartWave(Round);
             return;
         }
 
@@ -147,12 +151,26 @@ public class ScoreManager : MonoBehaviour
         if (cubeGenerator != null) cubeGenerator.StopSpawning();
 
         if (Round >= waveManager.Count)
-            EndGame(); // EndGame suma Score a TotalScore (que en mode waves és 0)
+            EndGame();
         else
         {
             inWaveBreak = true;
             breakTimeLeft = waveBreakDuration;
+            ShowRoundCleared(true);
         }
+    }
+
+    private void ShowRoundCleared(bool show)
+    {
+        if (textRoundCleared == null) return;
+        textRoundCleared.gameObject.SetActive(show);
+        if (show) textRoundCleared.text = roundClearedMessage;
+    }
+
+    private void SetBreakText(string countdown)
+    {
+        if (textNextRound == null) return;
+        textNextRound.text = textRoundCleared != null ? countdown : roundClearedMessage + "\n" + countdown;
     }
 
     // Empieza una ronda: reinicia el tiempo, aplica la dificultad y vuelve a lanzar cubos
@@ -176,6 +194,7 @@ public class ScoreManager : MonoBehaviour
         if (uiTimer != null) uiTimer.SetActive(true);
         if (uiScoreFinal != null) uiScoreFinal.SetActive(false);
         if (textNextRound != null) textNextRound.text = "";
+        ShowRoundCleared(false);
 
         UpdateScoreUI();
         UpdateTimerUI();
@@ -189,8 +208,7 @@ public class ScoreManager : MonoBehaviour
         {
             // Pausa entre rondas: no salen cubos durante breakDuration segundos
             breakTimeLeft -= Time.deltaTime;
-            if (textNextRound != null)
-                textNextRound.text = $"Siguiente ronda en {Mathf.CeilToInt(Mathf.Max(0f, breakTimeLeft))}";
+            SetBreakText($"Siguiente ronda en {Mathf.CeilToInt(Mathf.Max(0f, breakTimeLeft))}");
 
             if (breakTimeLeft <= 0f)
                 StartRound(Round + 1);
@@ -266,6 +284,7 @@ public class ScoreManager : MonoBehaviour
     {
         IsGameOver = true;
         breakTimeLeft = breakDuration;
+        if (!UseWaves) ShowRoundCleared(true);
 
         if (cubeGenerator != null) cubeGenerator.StopSpawning();
 

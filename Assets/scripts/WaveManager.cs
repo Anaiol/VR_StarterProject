@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Defineix les onades (waves) de la partida. El ScoreManager les va activant una rere l'altra
-// i, en acabar l'última, mostra el panell final.
-// Posa'l a [MANAGERS] de la GameScene i arrossega el generador de cubs.
 public class WaveManager : MonoBehaviour
 {
     [System.Serializable]
@@ -28,13 +25,10 @@ public class WaveManager : MonoBehaviour
 
     public List<Wave> waves = new List<Wave>
     {
-        // Wave 1: introducció, lenta i d'un sol tipus
         new Wave { name = "Wave 1 - Introducció", duration = 30f, spawnsPerSecond = 0.3f,
                    gunCubes = true, swordCubes = false, cubeSpeed = 0.8f },
-        // Wave 2: els dos tipus, més ràpid i amb cubs dobles
         new Wave { name = "Wave 2 - Combinació", duration = 40f, spawnsPerSecond = 0.6f,
                    gunCubes = true, swordCubes = true, doubleSpawnChance = 0.25f, cubeSpeed = 1f },
-        // Wave 3: més velocitat i cubs especials
         new Wave { name = "Wave 3 - Caos", duration = 45f, spawnsPerSecond = 0.9f,
                    gunCubes = true, swordCubes = true, doubleSpawnChance = 0.35f, cubeSpeed = 1.3f,
                    specialChance = 0.15f },
@@ -43,7 +37,6 @@ public class WaveManager : MonoBehaviour
     public int Count => waves.Count;
     public Wave Get(int index) => waves[Mathf.Clamp(index, 0, waves.Count - 1)];
 
-    // Configura el generador amb els valors de la wave
     public void ApplyWave(int index)
     {
         Wave w = Get(index);

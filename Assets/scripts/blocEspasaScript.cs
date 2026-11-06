@@ -7,14 +7,13 @@ public class blocEspasaScript : MonoBehaviour
     [Tooltip("Seguretat: si el cub no toca la CubeMissZone, es destrueix igualment al cap d'aquests segons")]
     public float lifetime;
 
-    bool done; // evita comptar el mateix cub dues vegades (l'espasa té 2 colliders, i encert + fallada)
+    bool done;
 
     public void Start()
     {
         Invoke(nameof(Missed), lifetime);
     }
 
-    // El cub ha passat sense que el tallin (el crida la CubeMissZone o el lifetime)
     public void Missed()
     {
         if (done) return;
@@ -42,13 +41,12 @@ public class blocEspasaScript : MonoBehaviour
         if (other.CompareTag("Sword") && !done)
         {
             done = true;
-            hapticsScript.VibrateFor(other.transform); // vibra la mà de l'espasa
+            hapticsScript.VibrateFor(other.transform);
 
-            // Talla el cub en dos seguint el moviment de l'espasa (Ezy-Slice)
             SwordSlicer slicer = other.GetComponentInParent<SwordSlicer>();
             if (slicer != null) slicer.Slice(gameObject);
 
-            hitted(); // avisa el ScoreManager (punts + so) i destrueix el cub sencer
+            hitted();
         }
     }
 }

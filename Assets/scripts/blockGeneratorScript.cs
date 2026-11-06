@@ -71,7 +71,6 @@ public class blockGeneratorScript : MonoBehaviour
     [Tooltip("Probabilitat (0-1) que un cub sigui especial")]
     [Range(0f, 1f)] public float specialChance = 0f;
 
-    // Tria quins tipus de cub poden sortir (pistola, espasa o tots dos)
     public void SetCubeMix(bool gun, bool sword)
     {
         bool aIsGun = blockPrefabA != null && blockPrefabA.GetComponentInChildren<blockPistolaScript>() != null;
@@ -86,7 +85,6 @@ public class blockGeneratorScript : MonoBehaviour
         int first = Random.Range(0, cells);
         SpawnAt(first);
 
-        // De vegades, un segon cub en una altra casella
         if (cells > 1 && Random.value < doubleSpawnChance)
         {
             int second = (first + Random.Range(1, cells)) % cells;
@@ -104,9 +102,6 @@ public class blockGeneratorScript : MonoBehaviour
         return Random.value < chanceA ? blockPrefabA : blockPrefabB;
     }
 
-    // ---- Bossa de cubs especials (com el Tetris) ----
-    // Es barregen tots els especials, es treuen en aquest ordre i, quan s'acaben,
-    // es torna a omplir la bossa amb un ordre nou. Així surten tots abans de repetir-ne cap.
     private readonly System.Collections.Generic.List<GameObject> specialBag = new System.Collections.Generic.List<GameObject>();
     private GameObject lastSpecial;
 
@@ -126,14 +121,12 @@ public class blockGeneratorScript : MonoBehaviour
         foreach (GameObject s in specialPrefabs)
             if (s != null) specialBag.Add(s);
 
-        // Barreja Fisher-Yates
         for (int i = specialBag.Count - 1; i > 0; i--)
         {
             int j = Random.Range(0, i + 1);
             (specialBag[i], specialBag[j]) = (specialBag[j], specialBag[i]);
         }
 
-        // Evita que el primer de la bossa nova sigui igual que l'últim de l'anterior
         if (specialBag.Count > 1 && specialBag[0] == lastSpecial)
         {
             int k = Random.Range(1, specialBag.Count);

@@ -1,9 +1,6 @@
 using UnityEngine;
 using TMPro;
 
-// Mostra el best score a la UI del Lobby.
-// Posa aquest script a qualsevol GameObject de la LobbyScene (per exemple a [MANAGERS])
-// i arrossega el text TMP on s'ha de veure el best score.
 public class LobbyUI : MonoBehaviour
 {
     [Tooltip("Text TMP (World Space) on es mostra el best score")]
@@ -19,7 +16,6 @@ public class LobbyUI : MonoBehaviour
             return;
         }
 
-        // Mateixa clau de PlayerPrefs que fa servir el ScoreManager de la GameScene
         bestScoreText.text = prefix + ScoreManager.GetHighScore();
     }
 }

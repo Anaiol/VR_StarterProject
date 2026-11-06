@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Cub especial (Wave 3): es pot destruir amb la pistola o amb l'espasa i activa un efecte.
-// Va al costat d'un blockPistolaScript (els prefabs CubLent, CubRapid i CubCanvi són còpies de CubPistola).
 [RequireComponent(typeof(blockPistolaScript))]
 public class SpecialCube : MonoBehaviour
 {
@@ -17,7 +15,6 @@ public class SpecialCube : MonoBehaviour
 
     void Start()
     {
-        // Pinta el cub sense crear materials nous (el shader CyberCube fa servir _HologramColor)
         MaterialPropertyBlock block = new MaterialPropertyBlock();
         foreach (Renderer r in GetComponentsInChildren<Renderer>())
         {
@@ -29,7 +26,6 @@ public class SpecialCube : MonoBehaviour
         }
     }
 
-    // L'espasa també el pot destruir
     void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Sword")) return;
@@ -37,7 +33,6 @@ public class SpecialCube : MonoBehaviour
         GetComponent<blockPistolaScript>().hitted();
     }
 
-    // El crida blockPistolaScript.hitted()
     public void Activate()
     {
         switch (effect)

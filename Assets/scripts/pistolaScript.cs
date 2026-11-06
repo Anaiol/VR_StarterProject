@@ -131,7 +131,6 @@ public class pistolaScript : MonoBehaviour
 
     void OnTrigger(InputAction.CallbackContext ctx)
     {
-        // Només dispara el gallet de la mà on hi ha la pistola
         InputActionReference trigger = ActiveTrigger;
         if (trigger == null || ctx.action != trigger.action) return;
         if (!automatic) Fire();
@@ -197,7 +196,8 @@ public class pistolaScript : MonoBehaviour
         if (TryGetFirstHit(origin, dir, out RaycastHit hit))
         {
             if (hit.distance < length) end = hit.point;
-            aimingAtBlock = hit.collider.GetComponentInParent<blockPistolaScript>() != null;
+            aimingAtBlock = hit.collider.GetComponentInParent<blockPistolaScript>() != null
+                         || hit.collider.GetComponentInParent<endButton>() != null;
         }
 
         Color c = aimingAtBlock ? lineHitColor : lineColor;
@@ -233,6 +233,14 @@ public class pistolaScript : MonoBehaviour
             {
                 block.hitted();
                 hapticsScript.VibrateFor(transform); // vibra la mano de la pistola
+            }
+
+            // Botó de la UI per tornar al menú
+            endButton button = hit.collider.GetComponentInParent<endButton>();
+            if (button != null)
+            {
+                hapticsScript.VibrateFor(transform);
+                button.hitted();
             }
         }
         else if (debugLogs)

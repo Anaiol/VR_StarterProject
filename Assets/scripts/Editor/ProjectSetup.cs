@@ -6,11 +6,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-// Configura automàticament els canvis dels scripts nous:
-//  1. Prefab CubPistola  -> afegeix CubeExplode amb el model trencat i el material
-//  2. GameScene          -> crea la MissZone darrere del jugador
-//  3. LobbyScene         -> crea Text_BestScore, afegeix LobbyUI i posa sceneName al botó
-// Menú: Tools > VR Project > Configurar escenes i prefabs
 public static class ProjectSetup
 {
     const string CubPistolaPath   = "Assets/Prefabs/CubPistola.prefab";
@@ -36,7 +31,6 @@ public static class ProjectSetup
         EditorUtility.DisplayDialog("Configuració feta", log, "D'acord");
     }
 
-    // ---------- 1. Prefab CubPistola ----------
     static string SetupCubPistola()
     {
         GameObject shatter = AssetDatabase.LoadAssetAtPath<GameObject>(ShatterFbxPath);
@@ -63,7 +57,6 @@ public static class ProjectSetup
             + (mat == null ? " (sense material)" : "");
     }
 
-    // ---------- 2. GameScene ----------
     static string SetupGameScene()
     {
         Scene scene;
@@ -75,9 +68,8 @@ public static class ProjectSetup
             zone = new GameObject("MissZone");
             SceneManager.MoveGameObjectToScene(zone, scene);
 
-            // Posició: 1,5 m darrere del jugador, en la direcció contrària al generador de cubs
             Vector3 player = FindPlayerPosition(scene);
-            Vector3 toPlayer = Vector3.back; // els cubs vénen en -Z
+            Vector3 toPlayer = Vector3.back;
             blockGeneratorScript gen = FindComponent<blockGeneratorScript>(scene);
             if (gen != null)
             {
@@ -107,14 +99,12 @@ public static class ProjectSetup
         return "✓ GameScene: MissZone creada a " + zone.transform.position.ToString("F1");
     }
 
-    // ---------- 3. LobbyScene ----------
     static string SetupLobbyScene()
     {
         Scene scene;
         if (!OpenSceneByName("LobbyScene", out scene)) return "✗ No trobo la LobbyScene";
         string result = "✓ LobbyScene:";
 
-        // Text del best score: còpia de "Text_GameStartsIn", una mica per sobre
         GameObject best = FindInScene(scene, "Text_BestScore");
         if (best == null)
         {
@@ -137,7 +127,6 @@ public static class ProjectSetup
             result += " Text_BestScore creat,";
         }
 
-        // LobbyUI a [MANAGERS] (o a un GameObject nou si no existeix)
         GameObject managers = FindInScene(scene, "[MANAGERS]");
         if (managers == null)
         {
@@ -149,7 +138,6 @@ public static class ProjectSetup
         lobby.bestScoreText = best.GetComponent<TMP_Text>();
         result += " LobbyUI connectat,";
 
-        // Botó: nom de l'escena a carregar
         Autohand.buttonScript button = FindComponent<Autohand.buttonScript>(scene);
         if (button != null)
         {
@@ -165,9 +153,6 @@ public static class ProjectSetup
         return result;
     }
 
-    // =====================================================================
-    // WAVES: cubs especials, WaveManager, WeaponSwapper i gallet dret de la pistola
-    // =====================================================================
     const string PistolaPath = "Assets/Prefabs/Pistola.prefab";
     const string InputActionsPath = "Assets/AutoHand/Examples/Scenes/MetaXR/Auto Hand.inputactions";
 
@@ -286,7 +271,6 @@ public static class ProjectSetup
             sm.waveManager = wm;
             if (sm.cubeGenerator == null) sm.cubeGenerator = gen;
 
-            // Text per al nom de la wave i el compte enrere entre waves (còpia de Text_Time)
             if (sm.textNextRound == null)
             {
                 GameObject template = FindInScene(scene, "Text_Time");
@@ -323,9 +307,6 @@ public static class ProjectSetup
         return result;
     }
 
-    // =====================================================================
-    // SLICE: SwordSlicer a l'espasa (Ezy-Slice)
-    // =====================================================================
     const string SwordPath = "Assets/Prefabs/Sword.prefab";
     const string SliceMatPath = "Assets/VR-Game-Assets/Materials/CyberpunkCube_SliceFX.mat";
     const string CubeModelPath = "Assets/VR-Game-Assets/Models/CubeModels/CyberpunkCube_Whole.FBX";
@@ -335,7 +316,6 @@ public static class ProjectSetup
     {
         string log = "";
 
-        // Ezy-Slice ha de poder llegir la malla del cub (també a les Quest)
         ModelImporter importer = AssetImporter.GetAtPath(CubeModelPath) as ModelImporter;
         if (importer != null && !importer.isReadable)
         {
@@ -371,7 +351,6 @@ public static class ProjectSetup
         EditorUtility.DisplayDialog("Slice configurat", log, "D'acord");
     }
 
-    // ---------- Utilitats ----------
     static bool OpenSceneByName(string name, out Scene scene)
     {
         string guid = AssetDatabase.FindAssets(name + " t:Scene")
@@ -401,7 +380,6 @@ public static class ProjectSetup
 
     static Vector3 FindPlayerPosition(Scene scene)
     {
-        // Preferim la càmera amb tag MainCamera (la del cap del jugador VR)
         Camera cam = null;
         foreach (GameObject root in scene.GetRootGameObjects())
             foreach (Camera c in root.GetComponentsInChildren<Camera>(true))

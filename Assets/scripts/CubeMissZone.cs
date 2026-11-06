@@ -1,8 +1,5 @@
 using UnityEngine;
 
-// Zona darrere del jugador: tot cub que hi entri compta com a fallada i es destrueix.
-// Crea un GameObject buit a la GameScene, posa-hi un BoxCollider gran (darrere del jugador,
-// que tapi tota la zona on arriben els cubs) i afegeix aquest script.
 [RequireComponent(typeof(BoxCollider))]
 public class CubeMissZone : MonoBehaviour
 {
@@ -10,7 +7,6 @@ public class CubeMissZone : MonoBehaviour
     {
         GetComponent<BoxCollider>().isTrigger = true;
 
-        // Els cubs no tenen Rigidbody: perquè salti OnTriggerEnter, la zona n'ha de tenir un
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb == null) rb = gameObject.AddComponent<Rigidbody>();
         rb.isKinematic = true;
